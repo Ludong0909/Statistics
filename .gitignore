@@ -3,6 +3,7 @@
 
 # Kernel metadata
 *.ipynb_nbval
+*.ipython_kernel_cache
 
 # Outputs (customize further for specific types)
 *.ipynb.outputs
