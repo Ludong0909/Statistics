@@ -1,0 +1,22 @@
+# Jupyter Notebook checkpoints
+*.ipynb_checkpoints
+
+# Kernel metadata
+*.ipynb_nbval
+
+# Outputs (customize further for specific types)
+*.ipynb.outputs
+
+# Temporary Jupyter files
+.jupyter/
+
+# Hidden system files
+.DS_Store
+
+# IDE/editor specific files
+# Replace with your editor's ignore patterns if needed
+*.swp
+*.pyc
+
+# Logs
+*.log
