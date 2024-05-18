@@ -12,8 +12,13 @@ import torch.optim as optim
 from sklearn.model_selection import train_test_split
 import sys
 from tqdm import tqdm
+import time
 
-device = torch.device("mps" if torch.cuda.is_available() else "cpu")
+try: device = torch.device("mps")
+except: device = torch.device("cpu")
+# device = torch.device("mps" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
+print('device:', device)
 
 # ===========================================
 # Define network & functions
@@ -48,6 +53,7 @@ def train(model, x, y, optimizer):
     return loss, output
 
 def test(model, x, y):
+    x, y = x.to(device), y.to(device)
     model.eval()    # switch model to evaluate mode
     output = model(x)
     output = torch.squeeze(output)
@@ -56,6 +62,7 @@ def test(model, x, y):
     return loss, output
 
 def calculate_accuracy(y_true, y_pred):
+    y_true, y_pred = y_true.to(device), y_pred.to(device)
     predicted = y_pred.ge(.5).view(-1)
     err_num = (y_true != predicted).sum()
     accuracy = (y_true == predicted).sum().float()/len(y_true)
@@ -99,6 +106,9 @@ optimizer = optim.SGD(model_logreg.parameters(), lr=lr, weight_decay=wd)
 Accuracy = np.zeros((EPOCHS, 2))  # epochs, train/test
 Loss = np.zeros((EPOCHS, 2))
 
+# ------- Training --------
+# use tqdm to show the progress bar
+start_time = time.time()
 for epoch in tqdm(range(EPOCHS), desc='Training progress'):
     x_train = x_train.view(-1, 144)
     x_train, y_train = x_train.to(device), y_train.to(device)
@@ -119,6 +129,8 @@ for epoch in tqdm(range(EPOCHS), desc='Training progress'):
     
     Accuracy[epoch,0], Accuracy[epoch,1] = train_acc, test_acc
     Loss[epoch,0], Loss[epoch,1] = train_loss, test_loss
+train_time = time.time() - start_time
+print(f'Training time for {EPOCHS} epochs: {train_time:.2f} seconds')
 
 # ===========================================
 # plot
