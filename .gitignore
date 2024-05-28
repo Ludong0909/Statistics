@@ -31,9 +31,3 @@ __pycache__/
 
 # Logs
 *.log
-
-# nc files
-*.nc
-
-# pth files
-*.pth
