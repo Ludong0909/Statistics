@@ -5,6 +5,9 @@ __pycache__/
 *.nc
 *.png
 
+# Model
+*.pth
+
 # Jupyter Notebook checkpoints
 *.ipynb_checkpoints/
 
