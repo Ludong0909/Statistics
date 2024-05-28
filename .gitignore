@@ -1,8 +1,9 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
-# Large files
+# Large files and figures
 *.nc
+*.png
 
 # Jupyter Notebook checkpoints
 *.ipynb_checkpoints/
