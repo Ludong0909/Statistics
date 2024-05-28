@@ -1,5 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Large files
+*.nc
+
 # Jupyter Notebook checkpoints
-*.ipynb_checkpoints
+*.ipynb_checkpoints/
 
 # Kernel metadata
 *.ipynb_nbval
