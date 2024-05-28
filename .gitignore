@@ -1,3 +1,6 @@
+# Large files
+*.nc
+
 # Jupyter Notebook checkpoints
 *.ipynb_checkpoints
 
