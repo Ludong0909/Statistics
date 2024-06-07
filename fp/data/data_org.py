@@ -84,14 +84,16 @@ def process_monthly_files(base_dir, start_year, end_year, output_dir):
         precipitation_pivot.to_csv(precip_output_file)
 
 # %%
-# Define the base directory containing the data files and the output directory
-base_dir = '/Users/02h11ran/NTU/1122/SMA/fp/rdata/cwb_dy'
-output_dir = '/Users/02h11ran/NTU/1122/SMA/fp/sdata/st_dy'
+if __name__ == "__main__":
+    # Define the base directory containing the data files and the output directory
+    # get the current working directory
+    current_dir = os.getcwd()
+    base_dir = current_dir + '/raw/cwb_dy'
+    output_dir = current_dir + '/st_dy'
 
-# Define the range of years to process
-start_year = 1897
-end_year = 2023
+    # Define the range of years to process
+    start_year = 1897
+    end_year = 2023
 
-# Run the function to process files and extract data
-process_monthly_files(base_dir, start_year, end_year, output_dir)
-# %%
+    # Run the function to process files and extract data
+    process_monthly_files(base_dir, start_year, end_year, output_dir)
