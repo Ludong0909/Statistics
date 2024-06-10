@@ -5,8 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 
 current_dir = os.getcwd()
-st_dy_path = '/Users/ludong/PROGRAM/112-2/Statistics/fp/data/st_dy/'
-#st_dy_path = '/data/st_dy/'
+st_dy_path = current_dir + '/data/st_dy/'
 station_names = [466880, 466881, 466900, 466910, 466920, 466921, 466930, 466940, 466950, 
                 466990, 467050, 467060, 467080, 467110, 467270, 467300, 467350, 467410,
                 467420, 467440, 467441, 467480, 467490, 467530, 467540, 467550, 467570,
