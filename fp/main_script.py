@@ -304,7 +304,7 @@ def concatenate_date_range_data(station_number, special_values, date):
     all_precipitation_data = []
     all_temperature_data = []
     
-    precip_data, temp_data = load_data_and_clean(station, special_values)
+    precip_data, temp_data = load_data_and_clean(station_number, special_values)
     if start_date in precip_data.columns and end_date in precip_data.columns:
         all_precipitation_data.append(precip_data.loc[:, start_date:end_date].mean(axis=1))
     if start_date in temp_data.columns and end_date in temp_data.columns:
