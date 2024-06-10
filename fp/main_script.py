@@ -1,18 +1,12 @@
-# %% [markdown]
-# #### Import packages
-
-# %%
 import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.stats import gaussian_kde
 
-# %% [markdown]
-# #### Process data and plot specific station
-
-# %%
 current_dir = os.getcwd()
-st_dy_path = '/data/st_dy/'
+st_dy_path = '/Users/ludong/PROGRAM/112-2/Statistics/fp/data/st_dy/'
+#st_dy_path = '/data/st_dy/'
 station_names = [466880, 466881, 466900, 466910, 466920, 466921, 466930, 466940, 466950, 
                 466990, 467050, 467060, 467080, 467110, 467270, 467300, 467350, 467410,
                 467420, 467440, 467441, 467480, 467490, 467530, 467540, 467550, 467570,
@@ -87,25 +81,24 @@ def plot_historical_data(data, year_column='year'):
     plt.show()
 
 
-precipitation_data, temperature_data = load_data_and_clean(station_names[0], special_values)
-plot_historical_data(precipitation_data)
-plot_historical_data(temperature_data)
-
-# %% [markdown]
-# #### Plot the average among stations
-
-# %%
 # Calculate the average data across all stations
-def calculate_average_data(station_names, special_values):
+def calculate_stat_data(station_names, special_values):
     """
-    Calculate the average data across all stations.
+    Calculate statistical data for precipitation and temperature across multiple stations.
 
     Parameters:
-    station_names (list): List of station names.
-    special_values (list): List of special values to be replaced with NaN.
+    - station_names (list): A list of station names.
+    - special_values (list): A list of special values to be cleaned from the data.
 
     Returns:
-    tuple: A tuple containing the average precipitation data and temperature data.
+    - avg_precipitation_data (DataFrame): Average precipitation data across all stations.
+    - avg_temperature_data (DataFrame): Average temperature data across all stations.
+    - std_precipitation_data (DataFrame): Standard deviation of precipitation data across all stations.
+    - std_temperature_data (DataFrame): Standard deviation of temperature data across all stations.
+    - q1_precipitation_data (DataFrame): First quartile of precipitation data across all stations.
+    - q1_temperature_data (DataFrame): First quartile of temperature data across all stations.
+    - q3_precipitation_data (DataFrame): Third quartile of precipitation data across all stations.
+    - q3_temperature_data (DataFrame): Third quartile of temperature data across all stations.
     """
     all_precipitation_data = []
     all_temperature_data = []
@@ -115,15 +108,32 @@ def calculate_average_data(station_names, special_values):
         all_precipitation_data.append(precip_data)
         all_temperature_data.append(temp_data)
     
+    # Calculate the average data across all stations
     avg_precipitation_data = pd.concat(all_precipitation_data).groupby('year').mean().reset_index()
     avg_temperature_data = pd.concat(all_temperature_data).groupby('year').mean().reset_index()
     
-    return avg_precipitation_data, avg_temperature_data
+    # Calculate std across all stations
+    std_precipitation_data = pd.concat(all_precipitation_data).groupby('year').std().reset_index()
+    std_temperature_data = pd.concat(all_temperature_data).groupby('year').std().reset_index()
+    
+    # Calculate Q1 and Q3 across all stations
+    q1_precipitation_data = pd.concat(all_precipitation_data).groupby('year').quantile(0.25).reset_index()
+    q1_temperature_data = pd.concat(all_temperature_data).groupby('year').quantile(0.25).reset_index()
+    q3_precipitation_data = pd.concat(all_precipitation_data).groupby('year').quantile(0.75).reset_index()
+    q3_temperature_data = pd.concat(all_temperature_data).groupby('year').quantile(0.75).reset_index()
+    
+    return (avg_precipitation_data, avg_temperature_data, 
+            std_precipitation_data, std_temperature_data, 
+            q1_precipitation_data,  q1_temperature_data,
+            q3_precipitation_data,  q3_temperature_data,)
+
 
 # Plot historical data for average precipitation and temperature
 def plot_historical_data_avg(data, year_column='year'):
     """
     Plot historical data across all years using grayscale for the legend, cleaned with NaN for special values and outliers below -10.
+    
+    (Same as plot_historical_data, but modify the title: average data across all stations.)
     
     Args:
     data (pd.DataFrame): The dataset.
@@ -159,17 +169,7 @@ def plot_historical_data_avg(data, year_column='year'):
     plt.grid(True)
     plt.show()
 
-# Calculate the average data across all stations
-avg_precipitation_data, avg_temperature_data = calculate_average_data(station_names, special_values)
 
-# Plot historical data for average precipitation and temperature
-plot_historical_data_avg(avg_precipitation_data)
-plot_historical_data_avg(avg_temperature_data)
-
-# %% [markdown]
-# #### Calculate statistic on historical data across the stations
-
-# %%
 def is_valid_date(date):
     """
     Check if the date is valid.
@@ -202,6 +202,7 @@ def is_valid_date(date):
        (month == 12 and 1 <= month_day <= 31):
         return True
     return False
+
 
 def concatenate_station_data_for_date(station_names, special_values, date):
     """
@@ -237,18 +238,18 @@ def concatenate_station_data_for_date(station_names, special_values, date):
         'precipitation_mean': all_precipitation_data.mean(),
         'temperature_mean': all_temperature_data.mean(),
         'precipitation_data': all_precipitation_data,
-        'temperature_data': all_temperature_data
+        'temperature_data': all_temperature_data,
+        'precipitation_std': all_precipitation_data.std(),
+        'temperature_std': all_temperature_data.std(),
+        'precipitation_q1': all_precipitation_data.quantile(0.25),
+        'temperature_q1': all_temperature_data.quantile(0.25),
+        'precipitation_q3': all_precipitation_data.quantile(0.75),
+        'temperature_q3': all_temperature_data.quantile(0.75),
     }
     
     return stats
 
-# Example usage:
-date = '0228'
-stats = concatenate_station_data_for_date(station_names, special_values, date)
-print("Precipitation Mean:", round(stats['precipitation_mean'], 2), 'mm')
-print("Temperature Mean:", round(stats['temperature_mean'], 2), '°C')
 
-# %%
 def compare_today_to_history(today_date, today_temp, today_precip, station_names, special_values):
     """
     Compare today's temperature and precipitation to historical data.
@@ -277,10 +278,44 @@ def compare_today_to_history(today_date, today_temp, today_precip, station_names
     
     return result
 
-# Example usage:
-today_date = input("Enter today's date (e.g., '0101' for Jan 1st): ")
-today_temp = float(input("Enter today's mean temperature (°C): "))
-today_precip = float(input("Enter today's mean precipitation (mm): "))
-result = compare_today_to_history(today_date, today_temp, today_precip, station_names, special_values)
-print(result['temperature_comparison'])
-print(result['precipitation_comparison'])
+
+def plot_historical_pdf_with_today(date, today_temp, today_precip, station_names, special_values):
+    temp_list, precip_list = [], []
+    for station in station_names:
+        precip_data, temp_data = load_data_and_clean(station, special_values)
+        for offset in range(-3, 4):
+            new_date = str(int(date) + offset)
+            if new_date in precip_data.columns:
+                precip_list.append(precip_data[new_date].dropna())
+            if new_date in temp_data.columns:
+                temp_list.append(temp_data[new_date].dropna())
+    
+    combined_precip = pd.concat(precip_list)
+    combined_temp = pd.concat(temp_list)
+
+    # Plot temperature PDF
+    plt.figure(figsize=(14, 6))
+
+    plt.subplot(1, 2, 1)
+    temp_density = gaussian_kde(combined_temp)
+    x = np.linspace(min(combined_temp), max(combined_temp), 1000)
+    plt.plot(x, temp_density(x))
+    plt.axvline(today_temp, color='r', linestyle='--', label="Today's Temp")
+    plt.title('Temperature PDF')
+    plt.xlabel('Temperature (°C)')
+    plt.ylabel('Density')
+    plt.legend()
+
+    # Plot precipitation PDF
+    plt.subplot(1, 2, 2)
+    precip_density = gaussian_kde(combined_precip)
+    x = np.linspace(min(combined_precip), max(combined_precip), 1000)
+    plt.plot(x, precip_density(x))
+    plt.axvline(today_precip, color='r', linestyle='--', label="Today's Precip")
+    plt.title('Precipitation PDF')
+    plt.xlabel('Precipitation (mm)')
+    plt.ylabel('Density')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
