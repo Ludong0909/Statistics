@@ -268,7 +268,7 @@ def month_days(month):
 
 def concatenate_date_range_data(station_number, special_values, date):
     """
-    Concatenate and compute statistics for all stations on a specific date range.
+    Concatenate and compute statistics for a specific station on a date range (+- 3 days).
 
     Parameters:
     station_number (int): The station number.
@@ -278,40 +278,54 @@ def concatenate_date_range_data(station_number, special_values, date):
     Returns:
     dict: A dictionary containing mean and other statistics for precipitation and temperature on the specified date range.
     """
-    if not is_valid_date(date[:4]) or not is_valid_date(date[5:]):
-        raise ValueError ("Invalid date. Please provide a valid date range in the format 'mmdd-mmdd' (e.g., '0101-1231' for Jan 1st to Dec 31st).")
+    if not is_valid_date(date):
+        raise ValueError("Invalid date. Please provide a valid date in the format 'mmdd' (e.g., '0101' for Jan 1st).")
 
-    today = int(date[:4])
-    today_month = int(today // 100)
-    today_date = int(today % 100)
-    if today_date <= 3:
-        if today_month == 1:
-            start_month = 12
-        else:
-            start_month = today_month - 1
-        start_date = str(start_month) + str(month_days(start_month) - 3 + today_date)
-    else:
-        start_date = str(today - 3)
-    if today_date >= month_days(today_month) - 2:
-        if today_month == 12:
-            end_month = 1
-        else:
-            end_month = today_month + 1
-        end_date = str(end_month) + str(3-(month_days(today_month)-today_date))
-    else:
-        end_date = str(today + 3)
+    today = int(date)
+    today_month = today // 100
+    today_day = today % 100
+
+    start_date, end_date = [], []
+
+    for offset in range(-3, 4):
+        new_day = today_day + offset
+        new_month = today_month
+
+        if new_day < 1:
+            new_month -= 1
+            if new_month < 1:
+                new_month = 12
+            new_day += month_days(new_month)
+        elif new_day > month_days(today_month):
+            new_day -= month_days(today_month)
+            new_month += 1
+            if new_month > 12:
+                new_month = 1
+
+        start_date.append(f"{new_month:02d}{new_day:02d}")
+        end_date.append(f"{new_month:02d}{new_day:02d}")
 
     all_precipitation_data = []
     all_temperature_data = []
-    
+
     precip_data, temp_data = load_data_and_clean(station_number, special_values)
-    if start_date in precip_data.columns and end_date in precip_data.columns:
-        all_precipitation_data.append(precip_data.loc[:, start_date:end_date].mean(axis=1))
-    if start_date in temp_data.columns and end_date in temp_data.columns:
-        all_temperature_data.append(temp_data.loc[:, start_date:end_date].mean(axis=1))
     
-    all_precipitation_data = pd.concat(all_precipitation_data, ignore_index=True)
-    all_temperature_data = pd.concat(all_temperature_data, ignore_index=True)
+    for s_date, e_date in zip(start_date, end_date):
+        if s_date in precip_data.columns:
+            all_precipitation_data.append(precip_data[s_date])
+        if e_date in temp_data.columns:
+            all_temperature_data.append(temp_data[e_date])
+
+    if all_precipitation_data:
+        all_precipitation_data = pd.concat(all_precipitation_data, ignore_index=True)
+    else:
+        all_precipitation_data = pd.Series(dtype=float)
+    
+    if all_temperature_data:
+        all_temperature_data = pd.concat(all_temperature_data, ignore_index=True)
+    else:
+        all_temperature_data = pd.Series(dtype=float)
+
     stats = {
         'precipitation_mean': all_precipitation_data.mean(),
         'temperature_mean': all_temperature_data.mean(),
@@ -324,8 +338,9 @@ def concatenate_date_range_data(station_number, special_values, date):
         'precipitation_q3': all_precipitation_data.quantile(0.75),
         'temperature_q3': all_temperature_data.quantile(0.75),
     }
-    
+
     return stats
+
 
 def compare_today_to_history(today_date, today_temp, today_precip, station_names, special_values):
     """
@@ -404,3 +419,4 @@ def plot_historical_pdf_with_today(date, today_temp, today_precip, station_names
 
     plt.tight_layout()
     plt.show()
+    
