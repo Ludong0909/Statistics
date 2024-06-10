@@ -11,7 +11,8 @@ def show_results():
         messagebox.showerror("Input Error", "Please enter valid numerical values for temperature and precipitation.")
         return
     result = ms.compare_today_to_history(today_date, today_temp, today_precip, ms.station_names, ms.special_values)
-    result_text.set(f"Temperature Comparison: {result['temperature_comparison']}\nPrecipitation Comparison: {result['precipitation_comparison']}")
+    # result_text.set(f"Temperature Comparison: {result['temperature_comparison']}\nPrecipitation Comparison: {result['precipitation_comparison']}")
+    result_text.set(f"Temperature Comparison: {result['temperature_comparison']}, {result['temperature_percentile']}\nPrecipitation Comparison: {result['precipitation_comparison']}, {result['precipitation_percentile']}")
 
 def plot_pdf():
     today_date = entry_date.get()
